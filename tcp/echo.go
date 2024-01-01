@@ -49,6 +49,7 @@ func (handler *EchoHandler) Handle(ctx context.Context, conn net.Conn) {
 		msg, err := reader.ReadString('\n')
 
 		if err != nil {
+			// when the user press end of file then close then delete the connection from the map
 			if err == io.EOF {
 				logger.Info("Connection close")
 				handler.activeConn.Delete(client)
