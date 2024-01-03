@@ -77,6 +77,8 @@ func ListenAndServe(listener net.Listener, handler tcp.Handler, closeChan <-chan
 
 	var waitDone sync.WaitGroup
 	for true {
+
+		// blocking call for waiting for the client for the connection
 		conn, err := listener.Accept()
 
 		if err != nil {
@@ -88,6 +90,7 @@ func ListenAndServe(listener net.Listener, handler tcp.Handler, closeChan <-chan
 		waitDone.Add(1)
 		go func() {
 
+			// will run this when the handler.Handle has done all of its job
 			defer func() {
 				waitDone.Done()
 			}()
