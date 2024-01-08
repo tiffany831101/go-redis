@@ -1,2 +1,4 @@
 github.com/hdt3213/godis v1.2.9 h1:UXzKA1zeByq9NMm+2f6cRmuZR0PRr0M4uE6Kr/D1Aok=
 github.com/hdt3213/godis v1.2.9/go.mod h1:aAbaMFV1bsBURpaqAyD+Vlo9/yNezE+27AsOc0DDZds=
+github.com/jolestar/go-commons-pool v2.0.0+incompatible h1:uHn5uRKsLLQSf9f1J5QPY2xREWx/YH+e4bIIXcAuAaE=
+github.com/jolestar/go-commons-pool v2.0.0+incompatible/go.mod h1:ChJYIbIch0DMCSU6VU0t0xhPoWDR2mMFIQek3XWU0s8=
