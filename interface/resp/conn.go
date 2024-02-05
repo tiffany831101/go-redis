@@ -1,5 +1,6 @@
 package resp
 
+// a client connection
 type Connection interface {
 	Write([]byte) error
 

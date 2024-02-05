@@ -7,13 +7,19 @@ import (
 	"time"
 )
 
+// each client has one connection..
 type Connection struct {
+	// current connection
 	conn         net.Conn
 	waitingReply wait.Wait
-	mu           sync.Mutex
-	selectedDB   int
+
+	// lock for the waiting Reply
+	mu sync.Mutex
+	// the selected db of redis
+	selectedDB int
 }
 
+// return a new connection
 func NewConn(conn net.Conn) *Connection {
 	return &Connection{
 		conn: conn,
@@ -30,6 +36,7 @@ func (c *Connection) Close() error {
 	return nil
 }
 
+// write the result back to the connection
 func (c *Connection) Write(bytes []byte) error {
 	if len(bytes) == 0 {
 		return nil

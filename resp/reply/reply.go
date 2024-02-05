@@ -21,6 +21,7 @@ func (b BulkReply) ToBytes() []byte {
 		return nullBulkReplyBytes
 	}
 
+	// moody => $5/r/nmoody/r/n
 	return []byte("$" + strconv.Itoa(len(b.Arg)) + CRLF + string(b.Arg) + CRLF)
 }
 

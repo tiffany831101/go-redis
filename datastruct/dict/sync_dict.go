@@ -4,7 +4,10 @@ import (
 	"sync"
 )
 
+// is the dict.Dict type which is the interface
+// this is the actual implement
 type SyncDict struct {
+	// read does not need to sync, but when doing write no one can write now
 	m sync.Map
 }
 

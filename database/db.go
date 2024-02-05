@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+// each db is a sync.map and index 16 dbs
 type DB struct {
 	index  int
 	data   dict.Dict
@@ -18,6 +19,7 @@ type ExecFunc func(db *DB, args [][]byte) resp.Reply
 
 type CmdLine = [][]byte
 
+// creat db
 func MakeDB() *DB {
 	db := &DB{
 		data:   dict.MakeSyncDict(),

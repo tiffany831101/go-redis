@@ -32,6 +32,8 @@ func (s *readState) finished() bool {
 
 func ParseStream(reader io.Reader) <-chan *Payload {
 	ch := make(chan *Payload)
+
+	// use goroutine to parse the stream..for each client
 	go parse0(reader, ch)
 	return ch
 }
@@ -50,6 +52,8 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 	var state readState
 	var err error
 	var msg []byte
+
+	// the loop will keep until
 	for true {
 		var ioErr bool
 		msg, ioErr, err = readLine(bufReader, &state)
@@ -72,9 +76,12 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 			continue
 		}
 
+		// only a single line
 		if !state.readingMultiLine {
 
 			// * is a array => get the elememt
+
+			// each msg only represents one line, when user press enter this is the new msg
 			if msg[0] == '*' {
 				err := parseMultiBulkHeader(msg, &state)
 
@@ -88,6 +95,7 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 					continue
 				}
 
+				// this is an empty bulk reply
 				if state.expectedArgsCount == 0 {
 					ch <- &Payload{
 						Data: &reply.EmptyMultiBulkReply{},
@@ -129,7 +137,12 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 				continue
 			}
 		} else {
+			// start with * to represent multiple lines
+			// if has multilines => which is the *3
+			// so it keeps putting the arguments into the arg slice
+
 			err := readBody(msg, &state)
+			// if there is an error
 			if err != nil {
 				ch <- &Payload{
 					Err: errors.New("protocol error: " + string(msg)),
@@ -140,6 +153,7 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 				continue
 			}
 
+			// has enough
 			if state.finished() {
 				var result resp.Reply
 
@@ -160,6 +174,10 @@ func parse0(reader io.Reader, ch chan<- *Payload) {
 	}
 }
 
+// readline
+// it just read the line => and send the message back it does not write any data
+// it just read the line and return the read msg
+// if the line is read
 func readLine(bufReader *bufio.Reader, state *readState) ([]byte, bool, error) {
 
 	var msg []byte
@@ -198,11 +216,14 @@ func readLine(bufReader *bufio.Reader, state *readState) ([]byte, bool, error) {
 
 }
 
+// parsemultibulkheader
+// for the one that start with the "*" => needs to use the multibulkreader to parse
 func parseMultiBulkHeader(msg []byte, state *readState) error {
 
 	var err error
 	var expectedLine uint64
 
+	// expectedLine is the line for *3 like this will be 3 lines
 	expectedLine, err = strconv.ParseUint(string(msg[1:len(msg)-2]), 10, 64)
 
 	if err != nil {
@@ -212,14 +233,22 @@ func parseMultiBulkHeader(msg []byte, state *readState) error {
 		return errors.New("protocol error: " + string(msg))
 	}
 
+	// no line
 	if expectedLine == 0 {
 		state.expectedArgsCount = 0
 		return nil
 	} else if expectedLine > 0 {
+
+		// msgType = "*"
 		state.msgType = msg[0]
+
+		// has multiple lines
 		state.readingMultiLine = true
+
+		// the number after * which is the expected Arg counts
 		state.expectedArgsCount = int(expectedLine)
 
+		// args is a 2-dimentional splice, and
 		state.args = make([][]byte, 0, expectedLine)
 		return nil
 
@@ -273,10 +302,16 @@ func parseSingleLineReply(msg []byte) (resp.Reply, error) {
 }
 
 func readBody(msg []byte, state *readState) error {
+	// hello/r/n so the last two does not want => readbody means to get the
+	// since line is the byte slice, so it dipose the last 2 elements
+	// $2/r/n so it only retrives $2
+	// hello/r/n it only retrieve the hello
 	line := msg[0 : len(msg)-2]
 	var err error
 
+	// so check if it is telling the next words length or the value
 	if line[0] == '$' {
+		// bulklen is the length of the word
 		state.bulkLen, err = strconv.ParseInt(string(line[1:]), 10, 64)
 
 		if err != nil {
@@ -284,11 +319,14 @@ func readBody(msg []byte, state *readState) error {
 		}
 
 		if state.bulkLen <= 0 {
+			// append an empty byte slice to the arg
 			state.args = append(state.args, []byte{})
 			state.bulkLen = 0
 		}
 
 	} else {
+		// if it is like hello => then put this in the args
+		// args will be like [[set], [key], [value]] => but the key and value will be the byte slice type
 		state.args = append(state.args, line)
 
 	}
