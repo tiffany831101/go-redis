@@ -22,12 +22,16 @@ func NewStandaloneDataBase() *StandaloneDatabase {
 		config.Properties.Databases = 16
 	}
 
+	// make it length of databases
 	database.dbSet = make([]*DB, config.Properties.Databases)
 
 	// init 16 dbs
+	// a list with
 	for i := range database.dbSet {
 		db := MakeDB()
+		// each db is a sync.map
 		db.index = i
+		// from 0-15
 		database.dbSet[i] = db
 	}
 

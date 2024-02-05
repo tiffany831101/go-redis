@@ -88,6 +88,7 @@ func ListenAndServe(listener net.Listener, handler tcp.Handler, closeChan <-chan
 		logger.Info("Accept link")
 
 		waitDone.Add(1)
+		// open a new goroutine to serve each of the client request
 		go func() {
 
 			// will run this when the handler.Handle has done all of its job

@@ -58,14 +58,30 @@ func (r *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 		_ = conn.Close()
 	}
 
+	// make a new connection
+
+	/*
+		{
+			conn: net.Conn
+			wait:
+			mutex: lock for the waitgroup
+			selecteddb
+		}
+	*/
 	client := connection.NewConn(conn)
+	// store an empty struct
+
+	// this map need to be synchronization
+	// only to check if the client is in the map, not to store any actual data
 	r.activeConn.Store(client, struct{}{})
 
+	// parse the request and put the result into the channel
 	ch := parser.ParseStream(conn)
 
+	// get the payload from the channel
 	for payload := range ch {
 
-		// error
+		// if there is an error from the payload
 		if payload.Err != nil {
 			// close the connection
 			if payload.Err == io.EOF || payload.Err == io.ErrUnexpectedEOF || strings.Contains(payload.Err.Error(), "use of closed network connection") {
@@ -101,9 +117,12 @@ func (r *RespHandler) Handle(ctx context.Context, conn net.Conn) {
 			logger.Error("require multi bulk reply")
 			continue
 		}
+
+		// execute the command in the db now
 		result := r.db.Exec(client, reply.Args)
 
 		if result != nil {
+			// write the result back to the client
 			_ = client.Write(result.ToBytes())
 		} else {
 			client.Write(unknownErrReplyBytes)

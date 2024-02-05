@@ -98,7 +98,7 @@ func (handler *AofHandler) handleAof() {
 	}
 }
 
-// LoadAof
+// to load the intstruction in the aof file to let the state of redis remain
 func (handler *AofHandler) LoadAof() {
 
 	// only readonly
@@ -109,6 +109,9 @@ func (handler *AofHandler) LoadAof() {
 	}
 
 	defer file.Close()
+
+	// parse the command in the file
+	// this time read from the file, seperate with the /r/n
 	ch := parser.ParseStream(file)
 
 	fakeConn := &connection.Connection{}
@@ -128,6 +131,7 @@ func (handler *AofHandler) LoadAof() {
 			continue
 		}
 
+		// p.data is an interface
 		r, ok := p.Data.(*reply.MultiBulkReply)
 		if !ok {
 			logger.Error("need Multi bulk")
