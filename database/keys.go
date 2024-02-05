@@ -119,7 +119,7 @@ func execKeys(db *DB, args [][]byte) resp.Reply {
 	pattern, _ := wildcard.CompilePattern(string(args[0]))
 	result := make([][]byte, 0)
 
-	db.data.ForEach(func(key string, val interface{}) bool {
+	db.stringData.ForEach(func(key string, val interface{}) bool {
 		if pattern.IsMatch(key) {
 			result = append(result, []byte(key))
 		}
